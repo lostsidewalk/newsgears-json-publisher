@@ -2,6 +2,7 @@ package com.lostsidewalk.buffy.json;
 
 
 import com.google.gson.JsonObject;
+import com.lostsidewalk.buffy.DataAccessException;
 import com.lostsidewalk.buffy.FeedPreview;
 import com.lostsidewalk.buffy.Publisher;
 import com.lostsidewalk.buffy.RenderedFeedDao;
@@ -17,10 +18,8 @@ import java.util.*;
 
 import static com.lostsidewalk.buffy.Publisher.PubFormat.JSON;
 import static java.time.Instant.now;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.size;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 @Slf4j
 @Component
@@ -60,7 +59,7 @@ public class JSONPublisher implements Publisher {
             errors.add(e);
         }
 
-        return PubResult.from(getPublisherId(), feedIdent, transportIdent, errors, new Date());
+        return PubResult.from(getPublisherId(), errors, new Date());
     }
 
     @Override
@@ -74,29 +73,28 @@ public class JSONPublisher implements Publisher {
     }
 
     @Override
-    public List<FeedPreview> doPreview(String username, List<StagingPost> incomingPosts, PubFormat format) {
+    public List<FeedPreview> doPreview(String username, List<StagingPost> incomingPosts, PubFormat format) throws DataAccessException {
         log.info("JSON publisher has to {} posts to publish at {}", size(incomingPosts), now());
-
         // group posts by output file for tag
-        Map<String, List<StagingPost>> postsByFeedIdent = new HashMap<>();
+        Map<Long, List<StagingPost>> postsByFeedId = new HashMap<>();
         for (StagingPost incomingPost : incomingPosts) {
-            postsByFeedIdent.computeIfAbsent(incomingPost.getFeedIdent(), t -> new ArrayList<>()).add(incomingPost);
+            postsByFeedId.computeIfAbsent(incomingPost.getFeedId(), t -> new ArrayList<>()).add(incomingPost);
         }
-
-        List<FeedPreview> previewPosts = postsByFeedIdent.entrySet().stream()
-                .map(e -> previewFeed(username, e.getKey(), e.getValue(), format))
-                .filter(Objects::nonNull)
-                .collect(toList());
-
+        List<FeedPreview> feedPreviews = new ArrayList<>(postsByFeedId.keySet().size());
+        for (Map.Entry<Long, List<StagingPost>> e : postsByFeedId.entrySet()) {
+            FeedPreview feedPreview = previewFeed(username, e.getKey(), e.getValue(), format);
+            if (feedPreview != null) {
+                feedPreviews.add(feedPreview);
+            }
+        }
         log.info("JSON publisher preview finished at {}", now());
-
-        return previewPosts;
+        return feedPreviews;
     }
 
-    FeedPreview previewFeed(String username, String feedIdent, List<StagingPost> stagingPosts, PubFormat format) {
-        log.info("Previewing feed with ident={}, format={}", defaultIfBlank(feedIdent, "(all)"), format);
+    FeedPreview previewFeed(String username, Long feedId, List<StagingPost> stagingPosts, PubFormat format) throws DataAccessException {
+        log.info("Previewing feed with ident={}, format={}", (feedId == null ? "(all)" : feedId), format);
         String payload = EMPTY;
-        FeedDefinition feedDefinition = this.feedDefinitionDao.findByFeedIdent(username, feedIdent);
+        FeedDefinition feedDefinition = this.feedDefinitionDao.findByFeedId(username, feedId);
         if (feedDefinition != null) {
             try {
                 if (format == JSON) {
@@ -106,14 +104,14 @@ public class JSONPublisher implements Publisher {
                 log.error("Unable to rendered feed due to: {}", e.getMessage());
             }
         } else {
-            log.warn("Unable to locate feed definition with ident={}", feedIdent);
+            log.warn("Unable to locate feed definition with Id={}", feedId);
         }
 
         payload = payload
                 .replace("\n", EMPTY)
                 .replace("\r", EMPTY);
 
-        return FeedPreview.from(feedIdent, payload);
+        return FeedPreview.from(feedId, payload);
     }
 
     private static final String JSON_PUBLISHER_ID = "JSON";
