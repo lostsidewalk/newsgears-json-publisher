@@ -26,8 +26,6 @@ class PostsArrayBuilder {
     private static final String POST_TITLE_FIELD_NAME = "postTitle";
     private static final String FEED_ID_FIELD_NAME = "feedId";
     private static final String IMPORTER_DESC_FIELD_NAME = "importerDesc";
-    private static final String SOURCE_NAME_FIELD_NAME = "sourceName";
-    private static final String SOURCE_URL_FIELD_NAME = "sourceUrl";
     private static final String IMPORTER_ID_FIELD_NAME = "importerId";
     private static final String POST_DESC_FIELD_NAME = "postDesc";
     private static final String POST_CONTENTS_FIELD_NAME = "postContents";
@@ -64,10 +62,6 @@ class PostsArrayBuilder {
             sObj.addProperty(FEED_ID_FIELD_NAME, s.getFeedId());
             // importer description
             sObj.addProperty(IMPORTER_DESC_FIELD_NAME, s.getImporterDesc());
-            // source name
-            sObj.addProperty(SOURCE_NAME_FIELD_NAME, s.getSourceName());
-            // source url
-            sObj.addProperty(SOURCE_URL_FIELD_NAME, s.getSourceName());
             // post title
             ContentObject postTitle = s.getPostTitle();
             if (postTitle != null) {
