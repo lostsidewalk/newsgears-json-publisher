@@ -24,9 +24,9 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.5'
 
     // json
-    implementation 'org.json:json:20220924'
+    implementation 'org.json:json:20230227'
     // spring-boot-starter
-    implementation 'org.springframework.boot:spring-boot-starter:3.0.1'
+    implementation 'org.springframework.boot:spring-boot-starter:3.0.4'
     // commons-collections4
     implementation 'org.apache.commons:commons-collections4:4.4'
     // commons-lang
@@ -39,10 +39,10 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // lombok
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
-    testCompileOnly 'org.projectlombok:lombok:1.18.22'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    testCompileOnly 'org.projectlombok:lombok:1.18.26'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
 }
 
 publishing {
