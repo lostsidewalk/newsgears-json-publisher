@@ -4,11 +4,18 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'signing'
+
+group = 'com.lostsidewalk.newsgears'
+version = '0.5'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(19)
     }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
@@ -18,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.lostsidewalk.newsgears:newsgears-data:0.4'
+    implementation 'com.lostsidewalk.newsgears:newsgears-data:0.5.0'
 
     // SLF4J
     implementation 'org.slf4j:slf4j-api:2.0.5'
@@ -47,12 +54,61 @@ dependencies {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            groupId = 'com.lostsidewalk.newsgears'
+        mavenJava(MavenPublication) {
             artifactId = 'newsgears-json-publisher'
-            version = '0.4'
-
             from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'newsgears-json-publisher'
+                description = 'This module contains the FeedGears RSS platform publisher component.'
+                url = 'https://www.lostsidewalk.com/dev/newsgears-json-publisher'
+                licenses {
+                    license {
+                        name = 'GNU General Public License'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'elderscrollsjesus'
+                        name = 'Michael Harris'
+                        email = 'meh@lostsidewalk.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/lostsidewalk/newsgears-json-publisher.git'
+                    developerConnection = 'scm:git:https://github.com/lostsidewalk/newsgears-json-publisher.git'
+                    url = 'https://www.lostsidewalk.com/dev/newsgears-json-publisher'
+                }
+            }
         }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/releases'
+            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
