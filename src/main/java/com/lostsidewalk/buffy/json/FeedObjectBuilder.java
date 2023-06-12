@@ -2,7 +2,7 @@ package com.lostsidewalk.buffy.json;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.lostsidewalk.buffy.feed.FeedDefinition;
+import com.lostsidewalk.buffy.queue.QueueDefinition;
 import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.util.Date;
@@ -38,33 +38,33 @@ class FeedObjectBuilder {
 
     private static final String IMG_URL_FIELD_NAME = "imgUrl";
 
-    JsonElement buildFeedObject(FeedDefinition feedDefinition, Date pubDate) {
+    JsonElement buildFeedObject(QueueDefinition queueDefinition, Date pubDate) {
         JsonObject feedObject = new JsonObject();
 
-        feedObject.addProperty(IDENT_FIELD_NAME, feedDefinition.getIdent());
+        feedObject.addProperty(IDENT_FIELD_NAME, queueDefinition.getIdent());
 
-        feedObject.addProperty(TITLE_FIELD_NAME, feedDefinition.getTitle());
+        feedObject.addProperty(TITLE_FIELD_NAME, queueDefinition.getTitle());
 
-        feedObject.addProperty(DESCRIPTION_FIELD_NAME, feedDefinition.getDescription());
+        feedObject.addProperty(DESCRIPTION_FIELD_NAME, queueDefinition.getDescription());
 
-        feedObject.addProperty(GENERATOR_FIELD_NAME, feedDefinition.getGenerator());
+        feedObject.addProperty(GENERATOR_FIELD_NAME, queueDefinition.getGenerator());
 
-        String copyright = feedDefinition.getCopyright();
+        String copyright = queueDefinition.getCopyright();
         if (isNotBlank(copyright)) {
-            feedObject.addProperty(COPYRIGHT_FIELD_NAME, feedDefinition.getCopyright());
+            feedObject.addProperty(COPYRIGHT_FIELD_NAME, queueDefinition.getCopyright());
         }
 
-        String language = feedDefinition.getLanguage();
+        String language = queueDefinition.getLanguage();
         if (isNotBlank(language)) {
             feedObject.addProperty(LANGUAGE_FIELD_NAME, language);
         }
 
         feedObject.addProperty(PUB_DATE_FIELD_NAME, DATE_FORMATTER.format(pubDate));
 
-        String url = String.format(configProps.getChannelLinkTemplate(), feedDefinition.getTransportIdent());
+        String url = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getTransportIdent());
         feedObject.addProperty(URL_FIELD_NAME, url);
 
-        String imgUrl = String.format(configProps.getChannelImageUrlTemplate(), feedDefinition.getTransportIdent());
+        String imgUrl = String.format(configProps.getChannelImageUrlTemplate(), queueDefinition.getTransportIdent());
         feedObject.addProperty(IMG_URL_FIELD_NAME, imgUrl);
 
         return feedObject;

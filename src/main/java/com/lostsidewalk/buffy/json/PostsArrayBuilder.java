@@ -59,7 +59,7 @@ class PostsArrayBuilder {
             // importer Id
             sObj.addProperty(IMPORTER_ID_FIELD_NAME, s.getImporterId());
             // feed ident
-            sObj.addProperty(FEED_ID_FIELD_NAME, s.getFeedId());
+            sObj.addProperty(FEED_ID_FIELD_NAME, s.getQueueId());
             // importer description
             sObj.addProperty(IMPORTER_DESC_FIELD_NAME, s.getImporterDesc());
             // post title
