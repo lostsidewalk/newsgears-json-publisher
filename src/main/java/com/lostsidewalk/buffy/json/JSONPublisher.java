@@ -21,9 +21,16 @@ import static java.time.Instant.now;
 import static org.apache.commons.collections4.CollectionUtils.size;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
+/**
+ * The JSONPublisher class is responsible for publishing JSON feeds based on configuration properties and input staging posts.
+ * It implements the {@link Publisher} interface to provide methods for publishing and previewing JSON feeds.
+ */
 @Slf4j
 @Component
 public class JSONPublisher implements Publisher {
+
+    @Autowired
+    JSONPublisherConfigProps configProps;
 
     @Autowired
     FeedObjectBuilder feedObjectBuilder;
@@ -37,14 +44,26 @@ public class JSONPublisher implements Publisher {
     @Autowired
     RenderedFeedDao renderedFeedDao;
 
+    /**
+     * Initializes the JSONPublisher bean after construction and logs the initialization timestamp.
+     */
     @PostConstruct
     public void postConstruct() {
         log.info("JSON publisher constructed at {}", now());
     }
 
+    /**
+     * Publishes a JSON feed based on the provided queue definition, staging posts, and publication date.
+     *
+     * @param queueDefinition The queue definition associated with the feed.
+     * @param stagingPosts    The list of staging posts to include in the feed.
+     * @param pubDate         The publication date of the feed.
+     * @return A map containing the publication results with URLs and errors.
+     */
     @Override
-    public PubResult publishFeed(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
+    public Map<String, PubResult> publishFeed(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
 
+        String pubUrl = null;
         List<Throwable> errors = new ArrayList<>();
         String feedIdent = queueDefinition.getIdent();
         String transportIdent = queueDefinition.getTransportIdent();
@@ -54,24 +73,45 @@ public class JSONPublisher implements Publisher {
         try {
             String payload = buildPayload(queueDefinition, stagingPosts, pubDate).toString();
             renderedFeedDao.putJSONFeedAtTransportIdent(transportIdent, payload);
-            log.info("Published JSON feed for feedIdent={}, transportIdent={}", feedIdent, transportIdent);
+            pubUrl = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getTransportIdent());
+            log.info("Published JSON feed for feedIdent={}, transportIdent={}, pubUrl={}", feedIdent, transportIdent, pubUrl);
         } catch (Exception e) {
             errors.add(e);
         }
 
-        return PubResult.from(getPublisherId(), errors, new Date());
+        return Map.of(getPublisherId(), PubResult.from(pubUrl, errors, new Date()));
     }
 
+    /**
+     * Returns the publisher ID for this JSONPublisher.
+     *
+     * @return The publisher ID, which is "JSON".
+     */
     @Override
     public String getPublisherId() {
         return JSON_PUBLISHER_ID;
     }
 
+    /**
+     * Checks if this publisher supports the specified publication format (JSON).
+     *
+     * @param pubFormat The publication format to check.
+     * @return true if the format is JSON, otherwise false.
+     */
     @Override
     public boolean supportsFormat(PubFormat pubFormat) {
         return pubFormat == JSON;
     }
 
+    /**
+     * Generates a preview of JSON feeds based on the provided username, staging posts, and publication format.
+     *
+     * @param username       The username associated with the feed.
+     * @param incomingPosts  The list of incoming staging posts to include in the feed.
+     * @param format         The publication format for the feed.
+     * @return A list of feed previews.
+     * @throws DataAccessException If there is an issue accessing data.
+     */
     @Override
     public List<FeedPreview> doPreview(String username, List<StagingPost> incomingPosts, PubFormat format) throws DataAccessException {
         log.info("JSON publisher has to {} posts to publish at {}", size(incomingPosts), now());
@@ -114,8 +154,6 @@ public class JSONPublisher implements Publisher {
         return FeedPreview.from(queueId, payload);
     }
 
-    private static final String JSON_PUBLISHER_ID = "JSON";
-
     private JsonObject buildPayload(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
         // build/publish the feed
         JsonObject j = new JsonObject();
@@ -123,4 +161,6 @@ public class JSONPublisher implements Publisher {
         j.add("posts", postsArrayBuilder.buildPostsArray(stagingPosts));
         return j;
     }
+
+    private static final String JSON_PUBLISHER_ID = "JSON";
 }

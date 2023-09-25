@@ -43,11 +43,20 @@ class FeedObjectBuilder {
 
         feedObject.addProperty(IDENT_FIELD_NAME, queueDefinition.getIdent());
 
-        feedObject.addProperty(TITLE_FIELD_NAME, queueDefinition.getTitle());
+        String title = queueDefinition.getTitle();
+        if (isNotBlank(title)) {
+            feedObject.addProperty(TITLE_FIELD_NAME, title);
+        }
 
-        feedObject.addProperty(DESCRIPTION_FIELD_NAME, queueDefinition.getDescription());
+        String description = queueDefinition.getDescription();
+        if (isNotBlank(description)) {
+            feedObject.addProperty(DESCRIPTION_FIELD_NAME, description);
+        }
 
-        feedObject.addProperty(GENERATOR_FIELD_NAME, queueDefinition.getGenerator());
+        String generator = queueDefinition.getGenerator();
+        if (isNotBlank(generator)) {
+            feedObject.addProperty(GENERATOR_FIELD_NAME, generator);
+        }
 
         String copyright = queueDefinition.getCopyright();
         if (isNotBlank(copyright)) {
@@ -64,8 +73,11 @@ class FeedObjectBuilder {
         String url = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getTransportIdent());
         feedObject.addProperty(URL_FIELD_NAME, url);
 
-        String imgUrl = String.format(configProps.getChannelImageUrlTemplate(), queueDefinition.getTransportIdent());
-        feedObject.addProperty(IMG_URL_FIELD_NAME, imgUrl);
+        String queueImgTransportIdent = queueDefinition.getQueueImgTransportIdent();
+        if (isNotBlank(queueImgTransportIdent)) {
+            String imgUrl = String.format(configProps.getChannelImageUrlTemplate(), queueImgTransportIdent);
+            feedObject.addProperty(IMG_URL_FIELD_NAME, imgUrl);
+        }
 
         return feedObject;
     }

@@ -8,7 +8,7 @@ apply plugin: 'java-library'
 apply plugin: 'signing'
 
 group = 'com.lostsidewalk.newsgears'
-version = '0.5.3'
+version = '0.5.4'
 
 java {
     toolchain {
@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.lostsidewalk.newsgears:newsgears-data:0.5.6'
+    implementation 'com.lostsidewalk.newsgears:newsgears-data:0.5.7'
 
     // SLF4J
     implementation 'org.slf4j:slf4j-api:2.0.5'
@@ -50,6 +50,9 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
     testCompileOnly 'org.projectlombok:lombok:1.18.26'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+    annotationProcessor 'com.github.therapi:therapi-runtime-javadoc-scribe:0.15.0'
+    implementation 'com.github.therapi:therapi-runtime-javadoc:0.15.0'
 }
 
 publishing {
