@@ -15,6 +15,13 @@ public class JSONPublisherConfig {
     JSONPublisherConfigProps configProps;
 
     /**
+     * Default constructor; initializes the object.
+     */
+    JSONPublisherConfig() {
+        super();
+    }
+
+    /**
      * Defines a bean for the FeedObjectBuilder, which is responsible for building the JSON feed object.
      *
      * @return A new instance of FeedObjectBuilder configured with the provided JSONPublisherConfigProps.

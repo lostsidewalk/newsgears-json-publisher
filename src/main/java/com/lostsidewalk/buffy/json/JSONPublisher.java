@@ -45,6 +45,13 @@ public class JSONPublisher implements Publisher {
     RenderedFeedDao renderedFeedDao;
 
     /**
+     * Default constructor; initializes the object.
+     */
+    JSONPublisher() {
+        super();
+    }
+
+    /**
      * Initializes the JSONPublisher bean after construction and logs the initialization timestamp.
      */
     @PostConstruct
