@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.lostsidewalk.buffy.json.PostsArrayBuilder.buildPostsArray;
 import static com.lostsidewalk.buffy.publisher.Publisher.PubFormat.JSON;
 import static java.time.Instant.now;
 import static org.apache.commons.collections4.CollectionUtils.size;
@@ -36,9 +37,6 @@ public class JSONPublisher implements Publisher {
     FeedObjectBuilder feedObjectBuilder;
 
     @Autowired
-    PostsArrayBuilder postsArrayBuilder;
-
-    @Autowired
     QueueDefinitionDao queueDefinitionDao;
 
     @Autowired
@@ -48,14 +46,13 @@ public class JSONPublisher implements Publisher {
      * Default constructor; initializes the object.
      */
     JSONPublisher() {
-        super();
     }
 
     /**
      * Initializes the JSONPublisher bean after construction and logs the initialization timestamp.
      */
     @PostConstruct
-    public void postConstruct() {
+    public static void postConstruct() {
         log.info("JSON publisher constructed at {}", now());
     }
 
@@ -68,25 +65,27 @@ public class JSONPublisher implements Publisher {
      * @return A map containing the publication results with URLs and errors.
      */
     @Override
-    public Map<String, PubResult> publishFeed(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
+    public final Map<String, PubResult> publishFeed(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
 
-        String pubUrl = null;
-        List<Throwable> errors = new ArrayList<>();
-        String feedIdent = queueDefinition.getIdent();
+        String transportPubUrl = null;
+        String userIdentPubUrl = null;
+        List<Throwable> errors = new ArrayList<>(1);
+        String queueIdent = queueDefinition.getIdent();
         String transportIdent = queueDefinition.getTransportIdent();
 
-        log.info("Deploying JSON feed with ident={}", feedIdent);
+        log.info("Deploying JSON feed with ident={}", queueIdent);
 
         try {
             String payload = buildPayload(queueDefinition, stagingPosts, pubDate).toString();
             renderedFeedDao.putJSONFeedAtTransportIdent(transportIdent, payload);
-            pubUrl = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getTransportIdent());
-            log.info("Published JSON feed for feedIdent={}, transportIdent={}, pubUrl={}", feedIdent, transportIdent, pubUrl);
-        } catch (Exception e) {
+            transportPubUrl = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getTransportIdent());
+            userIdentPubUrl = String.format(configProps.getChannelLinkTemplate(), queueDefinition.getUsername() + "/" + queueIdent);
+            log.info("Published JSON feed for queueIdent={}, transportIdent={}, transportPubUrl={}", queueIdent, transportIdent, transportPubUrl);
+        } catch (DataAccessException | RuntimeException e) {
             errors.add(e);
         }
 
-        return Map.of(getPublisherId(), PubResult.from(pubUrl, errors, new Date()));
+        return Map.of(JSON_PUBLISHER_ID, PubResult.from(transportPubUrl, userIdentPubUrl, errors, new Date()));
     }
 
     /**
@@ -95,7 +94,7 @@ public class JSONPublisher implements Publisher {
      * @return The publisher ID, which is "JSON".
      */
     @Override
-    public String getPublisherId() {
+    public final String getPublisherId() {
         return JSON_PUBLISHER_ID;
     }
 
@@ -106,7 +105,7 @@ public class JSONPublisher implements Publisher {
      * @return true if the format is JSON, otherwise false.
      */
     @Override
-    public boolean supportsFormat(PubFormat pubFormat) {
+    public final boolean supportsFormat(PubFormat pubFormat) {
         return pubFormat == JSON;
     }
 
@@ -120,12 +119,12 @@ public class JSONPublisher implements Publisher {
      * @throws DataAccessException If there is an issue accessing data.
      */
     @Override
-    public List<FeedPreview> doPreview(String username, List<StagingPost> incomingPosts, PubFormat format) throws DataAccessException {
+    public final List<FeedPreview> doPreview(String username, List<StagingPost> incomingPosts, PubFormat format) throws DataAccessException {
         log.info("JSON publisher has to {} posts to publish at {}", size(incomingPosts), now());
         // group posts by output file for tag
-        Map<Long, List<StagingPost>> postsByFeedId = new HashMap<>();
+        Map<Long, List<StagingPost>> postsByFeedId = new HashMap<>(16);
         for (StagingPost incomingPost : incomingPosts) {
-            postsByFeedId.computeIfAbsent(incomingPost.getQueueId(), t -> new ArrayList<>()).add(incomingPost);
+            postsByFeedId.computeIfAbsent(incomingPost.getQueueId(), t -> new ArrayList<>(size(incomingPosts))).add(incomingPost);
         }
         List<FeedPreview> feedPreviews = new ArrayList<>(postsByFeedId.keySet().size());
         for (Map.Entry<Long, List<StagingPost>> e : postsByFeedId.entrySet()) {
@@ -138,22 +137,23 @@ public class JSONPublisher implements Publisher {
         return feedPreviews;
     }
 
-    FeedPreview previewFeed(String username, Long queueId, List<StagingPost> stagingPosts, PubFormat format) throws DataAccessException {
+    private FeedPreview previewFeed(String username, Long queueId, Iterable<? extends StagingPost> stagingPosts, PubFormat format) throws DataAccessException {
         log.info("Previewing feed with ident={}, format={}", (queueId == null ? "(all)" : queueId), format);
         String payload = EMPTY;
-        QueueDefinition queueDefinitionDaoByFeedId = this.queueDefinitionDao.findByQueueId(username, queueId);
+        QueueDefinition queueDefinitionDaoByFeedId = queueDefinitionDao.findByQueueId(username, queueId);
         if (queueDefinitionDaoByFeedId != null) {
             try {
                 if (format == JSON) {
                     payload = buildPayload(queueDefinitionDaoByFeedId, stagingPosts, new Date()).toString();
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 log.error("Unable to rendered feed due to: {}", e.getMessage());
             }
         } else {
             log.warn("Unable to locate feed definition with Id={}", queueId);
         }
 
+        //noinspection HardcodedLineSeparator
         payload = payload
                 .replace("\n", EMPTY)
                 .replace("\r", EMPTY);
@@ -161,13 +161,23 @@ public class JSONPublisher implements Publisher {
         return FeedPreview.from(queueId, payload);
     }
 
-    private JsonObject buildPayload(QueueDefinition queueDefinition, List<StagingPost> stagingPosts, Date pubDate) {
+    private JsonObject buildPayload(QueueDefinition queueDefinition, Iterable<? extends StagingPost> stagingPosts, Date pubDate) {
         // build/publish the feed
-        JsonObject j = new JsonObject();
-        j.add("feed", feedObjectBuilder.buildFeedObject(queueDefinition, pubDate));
-        j.add("posts", postsArrayBuilder.buildPostsArray(stagingPosts));
-        return j;
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("feed", feedObjectBuilder.buildFeedObject(queueDefinition, pubDate));
+        jsonObject.add("posts", buildPostsArray(stagingPosts));
+        return jsonObject;
     }
 
     private static final String JSON_PUBLISHER_ID = "JSON";
+
+    @Override
+    public final String toString() {
+        return "JSONPublisher{" +
+                "configProps=" + configProps +
+                ", feedObjectBuilder=" + feedObjectBuilder +
+                ", queueDefinitionDao=" + queueDefinitionDao +
+                ", renderedFeedDao=" + renderedFeedDao +
+                '}';
+    }
 }

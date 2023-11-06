@@ -1,9 +1,11 @@
 package com.lostsidewalk.buffy.json;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 
+@Slf4j
 @Configuration
 @ConfigurationProperties(prefix = "json.publisher")
 class JSONPublisherConfigProps {
@@ -16,21 +18,29 @@ class JSONPublisherConfigProps {
     //
     //
 
-    public String getChannelLinkTemplate() {
+    public final String getChannelLinkTemplate() {
         return channelLinkTemplate;
     }
 
     @SuppressWarnings("unused")
-    public void setChannelLinkTemplate(String channelLinkTemplate) {
+    public final void setChannelLinkTemplate(String channelLinkTemplate) {
         this.channelLinkTemplate = channelLinkTemplate;
     }
 
-    public String getChannelImageUrlTemplate() {
+    public final String getChannelImageUrlTemplate() {
         return channelImageUrlTemplate;
     }
 
     @SuppressWarnings("unused")
-    public void setChannelImageUrlTemplate(String channelImageUrlTemplate) {
+    public final void setChannelImageUrlTemplate(String channelImageUrlTemplate) {
         this.channelImageUrlTemplate = channelImageUrlTemplate;
+    }
+
+    @Override
+    public final String toString() {
+        return "JSONPublisherConfigProps{" +
+                "channelLinkTemplate='" + channelLinkTemplate + '\'' +
+                ", channelImageUrlTemplate='" + channelImageUrlTemplate + '\'' +
+                '}';
     }
 }

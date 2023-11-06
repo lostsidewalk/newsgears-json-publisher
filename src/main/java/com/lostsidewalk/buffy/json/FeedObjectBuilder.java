@@ -3,6 +3,7 @@ package com.lostsidewalk.buffy.json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.lostsidewalk.buffy.queue.QueueDefinition;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.util.Date;
@@ -10,6 +11,8 @@ import java.util.Date;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.time.FastDateFormat.MEDIUM;
 
+
+@Slf4j
 class FeedObjectBuilder {
 
     final JSONPublisherConfigProps configProps;
@@ -38,7 +41,7 @@ class FeedObjectBuilder {
 
     private static final String IMG_URL_FIELD_NAME = "imgUrl";
 
-    JsonElement buildFeedObject(QueueDefinition queueDefinition, Date pubDate) {
+    final JsonElement buildFeedObject(QueueDefinition queueDefinition, Date pubDate) {
         JsonObject feedObject = new JsonObject();
 
         feedObject.addProperty(IDENT_FIELD_NAME, queueDefinition.getIdent());
@@ -80,5 +83,12 @@ class FeedObjectBuilder {
         }
 
         return feedObject;
+    }
+
+    @Override
+    public final String toString() {
+        return "FeedObjectBuilder{" +
+                "configProps=" + configProps +
+                '}';
     }
 }
