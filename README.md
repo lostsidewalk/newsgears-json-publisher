@@ -13,11 +13,8 @@
     <img src="images/logo.png" alt="Logo" width="144" height="144" style="box-shadow: 2px 2px 2px rgba(64,64,64,0.7)">
   </a>
 
-<h3 align="center">FeedGears RSS</h3>
+<h3 align="center">NewsGears RSS</h3>
  <p align="center">
-    FeedGears RSS is a web-based RSS aggregator/reader platform.
-    <br />
-    <br />
     <a href="https://github.com/lostsidewalk/newsgears-json-publisher/issues">Report Bug</a>
     ·
     <a href="https://github.com/lostsidewalk/newsgears-json-publisher/issues">Request Feature</a>
@@ -45,44 +42,18 @@
 </details>
 
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-https://www.feedgears.com
-
-FeedGears is a modern, free/libre, web-based RSS reader and aggregator platform. I built FeedGears with the goal of maintaining and advancing public interest in RSS, a unique and fun way of exploring the Internet. The world deserves free, secure, private, and inclusive access to RSS. This project is funded entirely by users, such as myself, and donors like you! FeedGears will always be free as in, and free as in freedom.
-
-What is RSS?
-
-RSS (RDF Site Summary or Really Simple Syndication) is a web feed that allows users and applications to access updates to websites in a standardized, computer-readable format. Subscribing to RSS feeds can allow a user to keep track of many different websites in a single news aggregator, which constantly monitors sites for new content, removing the need for the user to manually check them.
-
-FeedGears is an RSS aggregator
-
-The cloud-hosted version, www.feedgears.com, tracks thousands of feeds daily on behalf of our users. We import tens of thousands or articles, and organize and present them to people around the world to read, search, filter, etc. in a highly customizable and accessible way. Since FeedGears is entirely free, you can host your own instance using pre-built containers, using the instructions located here.
+## What Is This
 
 This repository contains the JSON publisher.  The JSON publisher is a back-end component that is invoked to produce JSON artifacts from staging post entities.  The schema of the artifact document produced by this package is not defined elsewhere, arbitrary, but roughly follows the Project ROME SyndFeed data structure.
 
-For more information about FeedGears, see the parent project repository at: https://www.github.com/lostsidewalk/newsgears-app.
+For more information about NewsGears, and RSS in general, see the parent project repository at: https://www.github.com/lostsidewalk/newsgears-app.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 ### Built With
 
-newsgears-json-publisher is a Java 19 library package, built with the following dependencies:
-
-Implementation Dependencies:
-<ul>
-    <li>com.lostsidewalk.newsgears:newsgears-data</li>
-     <li>org.slf4j:slf4j-api:2.0.5</li>
-    <li>implementation 'org.json:json:20230227</li>
-    <li>implementation 'org.springframework.boot:spring-boot-starter:3.0.4</li>
-    <li>implementation 'org.apache.commons:commons-collections4:4.4</li>
-    <li>implementation 'org.apache.commons:commons-lang3:3.12.0</li>
-    <li>implementation 'commons-io:commons-io:2.11.0</li>
-    <li>implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359</li>
-    <li>implementation 'com.google.code.gson:gson:2.10.1</li>
-</ul>
+newsgears-publisher is a Java 19 library package.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -92,7 +63,7 @@ Implementation Dependencies:
 
 ```
 dependencies {
-    api 'com.lostsidewalk.newsgears:newsgears-json-publisher:0.4'
+    api 'com.lostsidewalk.newsgears:newsgears-json-publisher'
 }
 ```
 
